@@ -1,7 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"io/ioutil"
+	"log"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // ファイルをセーブする関数
@@ -16,14 +20,22 @@ func (p *Page) save() error {
 
 // ファイルをロードする
 func loadPage(title string) (*Page, error) {
-	// 引数string titleと".txt"を結合
-	filename := title + ".txt"
 
-	// ioutilのReadFileメソッドで、bodyにfilenameを格納
-	body, err := ioutil.ReadFile(filename)
+	Dbcon, _ := sql.Open("sqlite3", "./test.sql")
+	defer Dbcon.Close()
+
+	cmd := `SELECT * FROM pages WHERE title = ?`
+	rows := DbCon.QueryRow(cmd, title)
+
+	var p Page
+	err := rows.Scan(&p.Title, &p.Body)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			log.Println("No row")
+		} else {
+			log.Fatalln(err)
+		}
 	}
-	// 返すのはstruct Page{}とエラー用nil
-	return &Page{Title: title, Body: body}, nil
+
+	return &Page{Title: p.Title, Body: p.Body}, nil
 }

@@ -1,16 +1,21 @@
 package main
 
 import (
+	"database/sql"
 	"html/template"
 	"log"
 	"net/http"
 	"regexp"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Page struct {
 	Title string
 	Body  []byte
 }
+
+var DbCon *sql.DB
 
 // templates変数にedit、view.htmlを格納。（キャッシング）
 var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
@@ -42,6 +47,17 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 }
 
 func main() {
+
+	DbConnection, _ := sql.Open("sqlite3", "./test.sql")
+	defer DbConnection.Close()
+	cmd := `CREATE TABLE IF NOT EXISTS pages(
+			title STRING,
+			body STRING)`
+	_, err := DbConnection.Exec(cmd)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// NotFound以外、つまり自分の指定したURLにアクセスしたい場合、自分でハンドラーを作成する。
 	// HandleFuncは第二引数に関数(responsewriter,request)Handlerをとる。
 	// 今回は、短くコードを書くため、makeHandler関数に突っ込んだ。
