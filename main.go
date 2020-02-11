@@ -32,7 +32,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		// mにvalidPath変数からRequest内のURLパスに一致した文字列を格納
 		m := validPath.FindStringSubmatch(r.URL.Path)
-		// mがnilならノットフォウんど。
+		// mがnilならNotFound。
 		if m == nil {
 			http.NotFound(w, r)
 			return
